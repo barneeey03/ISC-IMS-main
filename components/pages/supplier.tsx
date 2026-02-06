@@ -65,6 +65,9 @@ const COLORS = {
 
 // ========== INTERFACES ==========
 interface IssuedItem {
+  totalValue: any
+  totalStock: any
+  datePurchased: any
   id: string
   supplierId: string
   itemName: string
@@ -969,19 +972,18 @@ const InventoryTab = ({
   }, [purchaseHistory, issuedItems])
 
   // Filter inventory
-  const filtered = useMemo(() => {
-    return inventory.filter((item) => {
-      const matchesSearch =
-        item.itemName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.variant.toLowerCase().includes(searchQuery.toLowerCase())
-      const matchesSupplier = !selectedSupplier || item.supplierId === selectedSupplier
-      const itemDate = new Date(item.datePurchased)
-      const matchesDate =
-        (!dateRange.start || itemDate >= new Date(dateRange.start)) &&
-        (!dateRange.end || itemDate <= new Date(dateRange.end))
-      return matchesSearch && matchesSupplier && matchesDate
-    })
-  }, [inventory, searchQuery, selectedSupplier, dateRange])
+const filtered = useMemo(() => {
+  return issuedItems.filter((item) => {
+    const matchesSearch =
+      (item.itemName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.crewName || "").toLowerCase().includes(searchQuery.toLowerCase())
+    const itemDate = new Date(item.issuedDate)
+    const matchesDate =
+      (!dateRange.start || itemDate >= new Date(dateRange.end)) &&
+      (!dateRange.end || itemDate <= new Date(dateRange.end))
+    return matchesSearch && matchesDate
+  })
+}, [issuedItems, searchQuery, dateRange])
 
 const handleExportPDF = async () => {
   if (filtered.length === 0) {
@@ -1321,16 +1323,20 @@ const IssuedItemsTab = ({
     }
 
     try {
-      const newIssued = formData.items.map((item) => ({
-        id: generateClientId(),
-        supplierId: formData.supplierId,
-        itemName: item.itemName,
-        variant: item.variant,
-        quantity: item.quantity,
-        crewName: formData.crewName,
-        issuedDate: formData.issuedDate,
-        createdAt: new Date(),
-      }))
+  const newIssued: IssuedItem[] = formData.items.map(item => ({
+    id: crypto.randomUUID(),
+    supplierId: formData.supplierId,
+    itemName: item.itemName,
+    variant: item.variant,
+    quantity: item.quantity,
+    crewName: formData.crewName,
+    issuedDate: formData.issuedDate,
+    createdAt: new Date(),
+
+    totalValue: 0,        // or calculated value
+    totalStock: 0,        // or fetched stock
+    datePurchased: "",    // or real date
+  }))
 
       // Save each issued item to Firebase
       for (const item of newIssued) {
@@ -1464,18 +1470,18 @@ const IssuedItemsTab = ({
   doc.save(`IssuedItems_${new Date().toISOString().split("T")[0]}.pdf`)
   toast.success("Issued items exported to PDF")
 }
-  const filtered = useMemo(() => {
-    return issuedItems.filter((item) => {
-      const matchesSearch =
-        item.itemName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.crewName.toLowerCase().includes(searchQuery.toLowerCase())
-      const itemDate = new Date(item.issuedDate)
-      const matchesDate =
-        (!dateRange.start || itemDate >= new Date(dateRange.start)) &&
-        (!dateRange.end || itemDate <= new Date(dateRange.end))
-      return matchesSearch && matchesDate
-    })
-  }, [issuedItems, searchQuery, dateRange])
+const filtered = useMemo(() => {
+  return issuedItems.filter((item) => {
+    const matchesSearch =
+      (item.itemName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.crewName || "").toLowerCase().includes(searchQuery.toLowerCase())
+    const itemDate = new Date(item.issuedDate)
+    const matchesDate =
+      (!dateRange.start || itemDate >= new Date(dateRange.start)) &&
+      (!dateRange.end || itemDate <= new Date(dateRange.end))
+    return matchesSearch && matchesDate
+  })
+}, [issuedItems, searchQuery, dateRange])
 
   const getSupplierName = (supplierId: string) => suppliers.find((s) => s.id === supplierId)?.name || "Unknown"
 
@@ -1693,7 +1699,7 @@ const IssuedItemsTab = ({
                       <div className="flex justify-center gap-2">
                         <Button
                           onClick={async () => {
-                            const newQty = prompt(`Edit quantity for ${item.itemName}:`, item.quantity.toString())
+                            const newQty = prompt(`Edit quantity for ${item.itemName}:`, (item.quantity || 0).toString())
                             if (newQty && !isNaN(Number(newQty)) && Number(newQty) > 0) {
                               try {
                                 await updateDoc(doc(db, "issuedItems", item.id), {
@@ -1755,7 +1761,7 @@ const IssuedItemsTab = ({
       {/* Summary */}
       <Card className="p-4 bg-blue-50 border border-blue-200">
         <p className="text-sm text-blue-600 font-medium">Total Items Issued</p>
-        <p className="text-2xl font-bold text-blue-900">{filtered.reduce((sum, item) => sum + item.quantity, 0)}</p>
+        <p className="text-2xl font-bold text-blue-900">{filtered.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0)}</p>
       </Card>
     </div>
   )
@@ -2042,7 +2048,7 @@ export function SupplierModule({ onSupplierUpdate }: any) {
         if (purchase.status === "pending") {
           await markPurchaseAsOrdered(purchase.id)
         }
-        
+       
         const result = await markPurchaseAsReceived(purchase)
         if (result.success) {
           toast.success(`✓ "${purchase.item}" marked as received!`, {
