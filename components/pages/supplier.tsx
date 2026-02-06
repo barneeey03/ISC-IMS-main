@@ -1,3 +1,4 @@
+
 "use client"
 import { Toaster, toast } from "react-hot-toast"
 import type React from "react"
@@ -1464,13 +1465,13 @@ const IssuedItemsTab = ({
   doc.save(`IssuedItems_${new Date().toISOString().split("T")[0]}.pdf`)
   toast.success("Issued items exported to PDF")
 }
-  const filtered = useMemo(() => {
-    return issuedItems.filter((item) => {
-      const matchesSearch =
-        item.itemName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.crewName.toLowerCase().includes(searchQuery.toLowerCase())
-      const itemDate = new Date(item.issuedDate)
-      const matchesDate =
+    const filtered = useMemo(() => {
+      return issuedItems.filter((item) => {
+        const matchesSearch =
+          (item.itemName?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
+          (item.crewName?.toLowerCase() || '').includes(searchQuery.toLowerCase())
+        const itemDate = new Date(item.issuedDate)
+        const matchesDate =
         (!dateRange.start || itemDate >= new Date(dateRange.start)) &&
         (!dateRange.end || itemDate <= new Date(dateRange.end))
       return matchesSearch && matchesDate
@@ -1558,12 +1559,12 @@ const IssuedItemsTab = ({
                 >
                   <option value="">-- Item --</option>
                   {inventory
-                    .filter((inv) => inv.supplierId === formData.supplierId)
-                    .map((inv) => (
-                      <option key={inv.itemName} value={inv.itemName}>
-                        {inv.itemName}
-                      </option>
-                    ))}
+                  .filter((inv) => inv.supplierId === formData.supplierId)
+                  .map((inv, index) => (
+                    <option key={`${inv.itemName}-${index}`} value={inv.itemName}>
+                      {inv.itemName}
+                    </option>
+                  ))}
                 </select>
 
                 <select
@@ -1755,8 +1756,10 @@ const IssuedItemsTab = ({
       {/* Summary */}
       <Card className="p-4 bg-blue-50 border border-blue-200">
         <p className="text-sm text-blue-600 font-medium">Total Items Issued</p>
-        <p className="text-2xl font-bold text-blue-900">{filtered.reduce((sum, item) => sum + item.quantity, 0)}</p>
-      </Card>
+        <p className="text-2xl font-bold text-blue-900">
+          {filtered.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0)}
+        </p>     
+     </Card>
     </div>
   )
 }
