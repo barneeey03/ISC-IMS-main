@@ -193,12 +193,12 @@ export const deleteConsumable = async (id: string): Promise<boolean> => {
 };
 
 // ============================================================================
-// ISSUED ITEMS CRUD OPERATIONS
+// ISSUED ITEMS CRUD OPERATIONS (SEPARATE COLLECTION FOR CONSUMABLES)
 // ============================================================================
 
 export const getIssuedItems = async (): Promise<IssuedItem[]> => {
   try {
-    const q = query(collection(db, 'issuedItems'), orderBy('dateIssued', 'desc'));
+    const q = query(collection(db, 'consumablesIssuedItems'), orderBy('dateIssued', 'desc'));
     const snapshot = await getDocs(q);
     return snapshot.docs.map(doc => ({
       id: doc.id,
@@ -215,14 +215,14 @@ export const addIssuedItem = async (item: IssuedItem): Promise<boolean> => {
     const { id, ...data } = item;
     
     if (id) {
-      await setDoc(doc(db, 'issuedItems', id), {
+      await setDoc(doc(db, 'consumablesIssuedItems', id), {
         ...data,
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now()
       });
       console.log('Issued item added with custom ID:', id);
     } else {
-      const docRef = await addDoc(collection(db, 'issuedItems'), {
+      const docRef = await addDoc(collection(db, 'consumablesIssuedItems'), {
         ...data,
         createdAt: Timestamp.now(),
         updatedAt: Timestamp.now()
@@ -238,7 +238,7 @@ export const addIssuedItem = async (item: IssuedItem): Promise<boolean> => {
 
 export const updateIssuedItem = async (id: string, item: Partial<IssuedItem>): Promise<boolean> => {
   try {
-    const docRef = doc(db, 'issuedItems', id);
+    const docRef = doc(db, 'consumablesIssuedItems', id);
     const { id: _, ...updateData } = item as IssuedItem;
     
     await updateDoc(docRef, {
@@ -255,7 +255,7 @@ export const updateIssuedItem = async (id: string, item: Partial<IssuedItem>): P
 
 export const deleteIssuedItem = async (id: string): Promise<boolean> => {
   try {
-    await deleteDoc(doc(db, 'issuedItems', id));
+    await deleteDoc(doc(db, 'consumablesIssuedItems', id));
     console.log('Issued item deleted:', id);
     return true;
   } catch (error) {
@@ -473,7 +473,7 @@ export const getFixedAssetById = async (id: string): Promise<FixedAsset | null> 
 
 export const getIssuedItemById = async (id: string): Promise<IssuedItem | null> => {
   try {
-    const docRef = doc(db, 'issuedItems', id);
+    const docRef = doc(db, 'consumablesIssuedItems', id);
     const docSnap = await getDoc(docRef);
     
     if (docSnap.exists()) {

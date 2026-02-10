@@ -1,3 +1,5 @@
+
+
 import type React from "react"
 import type { Metadata } from "next"
 import { Analytics } from "@vercel/analytics/next"
@@ -34,14 +36,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <link 
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" 
-          rel="stylesheet" 
-        />
-      </head>
       <body className="font-sans antialiased bg-white" style={{
-        fontFamily: 'var(--font-inter), var(--font-ibm-plex), sans-serif'
+        fontFamily: 'Arial, Helvetica, sans-serif'
       }}>
         {children}
         <Toaster
@@ -49,7 +45,7 @@ export default function RootLayout({
           reverseOrder={false}
           toastOptions={{
             style: {
-              fontFamily: 'Inter, sans-serif',
+              fontFamily: 'Arial, Helvetica, sans-serif',
               borderRadius: '8px',
               padding: '12px 16px',
               boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
