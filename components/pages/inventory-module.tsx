@@ -540,7 +540,7 @@ const deleteIssuedItem = async (id: string) => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <div className="text-xl">Loading inventory....</div>
+        <div className="text-xl">Loading inventory...</div>
       </div>
     )
   }

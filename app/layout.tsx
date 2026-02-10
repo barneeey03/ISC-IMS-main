@@ -1,25 +1,8 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
-import { Poppins, Montserrat } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
-import { Toaster } from "react-hot-toast"  // ✅ import toast provider
+import { Toaster } from "react-hot-toast"
 import "./globals.css"
-
-const poppins = Poppins({
-  subsets: ["latin"],
-  weight: ["600", "700", "800"],
-  variable: "--font-poppins",
-})
-
-const montserrat = Montserrat({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600"],
-  variable: "--font-montserrat",
-})
-
-const _geist = Geist({ subsets: ["latin"] })
-const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "Maritime Inventory & Purchasing System",
@@ -51,26 +34,33 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${poppins.variable} ${montserrat.variable} font-sans antialiased bg-white`}>
+      <head>
+        <link 
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" 
+          rel="stylesheet" 
+        />
+      </head>
+      <body className="font-sans antialiased bg-white" style={{
+        fontFamily: 'var(--font-inter), var(--font-ibm-plex), sans-serif'
+      }}>
         {children}
-        {/* ✅ Add Toaster globally */}
         <Toaster
           position="top-right"
           reverseOrder={false}
           toastOptions={{
             style: {
-              fontFamily: 'var(--font-poppins), sans-serif',
+              fontFamily: 'Inter, sans-serif',
               borderRadius: '8px',
               padding: '12px 16px',
               boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
             },
             success: {
               duration: 4000,
-              style: { background: '#3b82f6', color: '#fff' }, // blue success toast
+              style: { background: '#3b82f6', color: '#fff' },
             },
             error: {
               duration: 5000,
-              style: { background: '#ef4444', color: '#fff' }, // red error toast
+              style: { background: '#ef4444', color: '#fff' },
             },
           }}
         />
