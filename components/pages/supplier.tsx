@@ -72,6 +72,7 @@ interface IssuedItem {
   variant: string
   quantity: number
   crewName: string
+  vesselName: string    // ← ADD
   issuedDate: string
   createdAt?: any
 }
@@ -376,31 +377,17 @@ const CurrentPurchasesTable: React.FC<CurrentPurchasesTableProps> = ({
       <Card className="overflow-hidden border border-gray-200 shadow-lg">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-800">
-              <tr>
-                <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase">
-                  Supplier
-                </th>
-                <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase">
-                  Item
-                </th>
-                <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-white uppercase">
-                  Variant
-                </th>
-                <th scope="col" className="px-6 py-4 text-right text-xs font-bold text-white uppercase">
-                  Qty
-                </th>
-                <th scope="col" className="px-6 py-4 text-right text-xs font-bold text-white uppercase">
-                  Unit Price
-                </th>
-                <th scope="col" className="px-6 py-4 text-right text-xs font-bold text-white uppercase">
-                  Total
-                </th>
-                <th scope="col" className="px-6 py-4 text-center text-xs font-bold text-white uppercase">
-                  Actions
-                </th>
-              </tr>
-            </thead>
+          <thead className="bg-gray-800">
+            <tr>
+              <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase">Item Name</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase">Variant</th>
+              <th className="px-6 py-4 text-right text-xs font-bold text-white uppercase">Qty</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase">Issued To</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase">Vessel</th>
+              <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase">Date Issued</th>
+              <th className="px-6 py-4 text-center text-xs font-bold text-white uppercase">Actions</th>
+            </tr>
+          </thead>
             <tbody className="divide-y divide-gray-200 bg-white">
               {(activePurchaseTab === 'pending' ? pendingPurchases : orderedPurchases).map((p, idx) => (
                 <tr key={p.id} className="hover:bg-gray-50 transition-colors">
@@ -1183,7 +1170,7 @@ const handleExportPDF = async () => {
             <tbody className="divide-y divide-gray-200 bg-white">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                <td colSpan={7} className="px-6 py-8 text-center text-gray-500">
                     No inventory records found
                   </td>
                 </tr>
@@ -1278,12 +1265,13 @@ const IssuedItemsTab = ({
   const [showIssueForm, setShowIssueForm] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [dateRange, setDateRange] = useState({ start: "", end: "" })
-  const [formData, setFormData] = useState({
-    supplierId: "",
-    items: [{ itemName: "", variant: "", quantity: 1 }],
-    crewName: "",
-    issuedDate: new Date().toISOString().split("T")[0],
-  })
+const [formData, setFormData] = useState({
+  supplierId: "",
+  items: [{ itemName: "", variant: "", quantity: 1 }],
+  crewName: "",
+  vesselName: "",         
+  issuedDate: new Date().toISOString().split("T")[0],
+})
 
   const inventory = useMemo(() => {
     const items: Record<string, any> = {}
@@ -1322,16 +1310,19 @@ const IssuedItemsTab = ({
     }
 
     try {
-      const newIssued = formData.items.map((item) => ({
-        id: generateClientId(),
-        supplierId: formData.supplierId,
-        itemName: item.itemName,
-        variant: item.variant,
-        quantity: item.quantity,
-        crewName: formData.crewName,
-        issuedDate: formData.issuedDate,
-        createdAt: new Date(),
-      }))
+    const newIssued = formData.items.map((item) => ({
+      id: generateClientId(),
+      supplierId: formData.supplierId,
+      itemName: item.itemName,
+      variant: item.variant,
+      quantity: item.quantity,
+      crewName: formData.crewName,
+      vesselName: formData.vesselName,   // ← ADD
+      issuedDate: formData.issuedDate,
+      createdAt: new Date(),
+    }))
+
+// The addDoc call already spreads ...item so vesselName is automatically saved to Firebase ✓
 
       // Save each issued item to Firebase
       for (const item of newIssued) {
@@ -1345,11 +1336,12 @@ const IssuedItemsTab = ({
       toast.success(`Issued ${formData.items.length} item(s) to ${formData.crewName}`)
 
       setFormData({
-        supplierId: "",
-        items: [{ itemName: "", variant: "", quantity: 1 }],
-        crewName: "",
-        issuedDate: new Date().toISOString().split("T")[0],
-      })
+      supplierId: "",
+      items: [{ itemName: "", variant: "", quantity: 1 }],
+      crewName: "",
+      vesselName: "",    
+      issuedDate: new Date().toISOString().split("T")[0],
+    })
       setShowIssueForm(false)
     } catch (error) {
       console.error("[v0] Error issuing items:", error)
@@ -1436,13 +1428,13 @@ const IssuedItemsTab = ({
     item.variant,
     item.quantity.toString(),
     item.crewName,
+    item.vesselName || "—",    // ← ADD
     item.issuedDate,
   ])
 
   autoTable(doc, {
     startY: 65, // below title
-    head: [["#", "Item Name", "Variant", "Quantity", "Issued To", "Date Issued"]],
-    body: tableData,
+    head: [["#", "Item Name", "Variant", "Quantity", "Issued To", "Vessel", "Date Issued"]],    body: tableData,
     theme: "striped",
     headStyles: { fillColor: [59, 130, 246], textColor: 255, fontStyle: "bold" },
     // This ensures header/footer appear on every page
@@ -1534,6 +1526,17 @@ const IssuedItemsTab = ({
             </div>
 
             <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Vessel Name</label>
+              <input
+                type="text"
+                placeholder="Enter vessel name"
+                value={formData.vesselName}
+                onChange={(e) => setFormData({ ...formData, vesselName: e.target.value })}
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Issued Date</label>
               <input
                 type="date"
@@ -1558,11 +1561,15 @@ const IssuedItemsTab = ({
                   className="flex-1 p-2 border border-gray-300 rounded-lg text-sm"
                 >
                   <option value="">-- Item --</option>
-                  {inventory
-                  .filter((inv) => inv.supplierId === formData.supplierId)
-                  .map((inv, index) => (
-                    <option key={`${inv.itemName}-${index}`} value={inv.itemName}>
-                      {inv.itemName}
+                  {Array.from(
+                    new Set(
+                      inventory
+                        .filter((inv) => inv.supplierId === formData.supplierId)
+                        .map((inv) => inv.itemName)
+                    )
+                  ).map((itemName) => (
+                    <option key={itemName} value={itemName}>
+                      {itemName}
                     </option>
                   ))}
                 </select>
@@ -1577,13 +1584,26 @@ const IssuedItemsTab = ({
                   className="flex-1 p-2 border border-gray-300 rounded-lg text-sm"
                 >
                   <option value="">-- Variant --</option>
-                  {inventory
-                    .filter((inv) => inv.supplierId === formData.supplierId && inv.itemName === item.itemName)
-                    .map((inv) => (
-                      <option key={inv.variant} value={inv.variant}>
-                        {inv.variant} (Avail: {inv.available})
+                {(() => {
+                  const supplierItem = suppliers
+                    .find((s) => s.id === formData.supplierId)
+                    ?.items.find((i) => i.name === item.itemName)
+
+                  return (supplierItem?.variants || []).map((v) => {
+                    const invRecord = inventory.find(
+                      (inv) =>
+                        inv.supplierId === formData.supplierId &&
+                        inv.itemName === item.itemName &&
+                        inv.variant === v.label
+                    )
+                    const available = invRecord?.available ?? 0
+                    return (
+                      <option key={v.id} value={v.label}>
+                        {v.label} (Avail: {available})
                       </option>
-                    ))}
+                    )
+                  })
+                })()}
                 </select>
 
                 <input
@@ -1671,6 +1691,7 @@ const IssuedItemsTab = ({
                 <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase">Variant</th>
                 <th className="px-6 py-4 text-right text-xs font-bold text-white uppercase">Qty</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase">Issued To</th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase">Vessel</th>
                 <th className="px-6 py-4 text-left text-xs font-bold text-white uppercase">Date Issued</th>
                 <th className="px-6 py-4 text-center text-xs font-bold text-white uppercase">Actions</th>
               </tr>
@@ -1689,6 +1710,7 @@ const IssuedItemsTab = ({
                     <td className="px-6 py-4 text-sm text-gray-600">{item.variant}</td>
                     <td className="px-6 py-4 text-sm text-right font-bold text-blue-600">{item.quantity}</td>
                     <td className="px-6 py-4 text-sm text-gray-700 font-medium">{item.crewName}</td>
+                    <td className="px-6 py-4 text-sm text-gray-700 font-medium">{item.vesselName || "—"}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">{item.issuedDate}</td>
                     <td className="px-6 py-4 text-sm">
                       <div className="flex justify-center gap-2">
