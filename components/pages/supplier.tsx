@@ -105,8 +105,8 @@ interface ConfirmModalProps {
 }
 
 const ConfirmModal: React.FC<ConfirmModalProps> = ({ title, message, onConfirm, onCancel }) => (
-  <div className="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm z-70 flex items-center justify-center p-4">
-    <Card className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 space-y-4">
+ <div className="fixed inset-0 z-70 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(17, 24, 39, 0.45)' }}>
+  <Card className="rounded-xl shadow-2xl w-full max-w-md p-6 space-y-4" style={{ backgroundColor: '#ffffff' }}>
       <div className="flex justify-between items-start">
         <h2 className="text-xl font-bold text-gray-900">{title}</h2>
         <Button onClick={onCancel} className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full">
@@ -146,8 +146,8 @@ const EditInventoryModal: React.FC<EditInventoryModalProps> = ({ item, onSave, o
   }
 
   return (
-    <div className="fixed inset-0 bg-gray-900 bg-opacity-50 backdrop-blur-sm z-70 flex items-center justify-center p-4">
-      <Card className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 space-y-5">
+   <div className="fixed inset-0 z-70 flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(17, 24, 39, 0.45)' }}>
+    <Card className="rounded-xl shadow-2xl w-full max-w-md p-6 space-y-5" style={{ backgroundColor: '#ffffff' }}>
         <div className="flex justify-between items-start border-b pb-3">
           <h2 className="text-xl font-bold text-gray-900">Edit Inventory Item</h2>
           <Button onClick={onClose} className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-full">
